@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            background-color: #2d2b3d; /* Dark purple background from your screenshot */
+        }
+        
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            display: block;
+        }
+        
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #2d2b3d;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: Arial, sans-serif;
+            z-index: 100;
+        }
+        
+        .loading-bar {
+            width: 200px;
+            height: 10px;
+            background-color: #444;
+            border-radius: 5px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        
+        .loading-bar-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #8062ff;
+            transition: width 0.2s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <h2>Loading 3D Model</h2>
+        <div class="loading-bar">
+            <div class="loading-bar-fill" id="loadingBarFill"></div>
+        </div>
+    </div>
+    
+    <canvas id="renderCanvas"></canvas>
+    
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    
+    <script>
+        const canvas = document.getElementById("renderCanvas");
+        const loadingScreen = document.getElementById("loadingScreen");
+        const loadingBarFill = document.getElementById("loadingBarFill");
+        const engine = new BABYLON.Engine(canvas, true);
+        const scene = new BABYLON.Scene(engine);
+        
+        // Set scene background color to match container
+        scene.clearColor = new BABYLON.Color4(0.176, 0.169, 0.239, 1); // #2d2b3d
+        
+        // Create a camera that will be adjusted once the model loads
+        const camera = new BABYLON.ArcRotateCamera(
+            "camera", 
+            Math.PI / 2,      // Alpha (horizontal rotation)
+            Math.PI / 2.5,    // Beta (vertical rotation)
+            2.5,              // Radius (distance from target)
+            new BABYLON.Vector3(0, 1, 0), // Target position at model's center
+            scene
+        );
+        
+        // Add camera controls with limits
+        camera.attachControl(canvas, true);
+        camera.lowerRadiusLimit = 1.5;
+        camera.upperRadiusLimit = 4;
+        camera.wheelPrecision = 100; // Make zooming more controlled
+        camera.panningSensibility = 0; // Disable panning to keep model centered
+        
+        // Add lights to properly illuminate the model
+        const hemisphericLight = new BABYLON.HemisphericLight(
+            "hemisphericLight", 
+            new BABYLON.Vector3(0, 1, 0), 
+            scene
+        );
+        hemisphericLight.intensity = 0.7;
+        
+        const directionalLight = new BABYLON.DirectionalLight(
+            "directionalLight",
+            new BABYLON.Vector3(0, -1, 1),
+            scene
+        );
+        directionalLight.intensity = 0.5;
+        
+        // Register a loading progress handler
+        engine.loadingUIBackgroundColor = "#2d2b3d";
+        let loadedPercent = 0;
+        
+        // Show loading progress
+        scene.onProgress = function(evt) {
+            if (evt.lengthComputable) {
+                loadedPercent = (evt.loaded * 100 / evt.total).toFixed();
+                loadingBarFill.style.width = loadedPercent + "%";
+            }
+        };
+        
+        // Helper function to calculate combined bounding info of all meshes
+        function calculateBoundingInfo(meshes) {
+            let min = new BABYLON.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+            let max = new BABYLON.Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+            
+            for (const mesh of meshes) {
+                if (mesh.getBoundingInfo) {
+                    const boundingInfo = mesh.getBoundingInfo();
+                    const meshMin = boundingInfo.boundingBox.minimumWorld;
+                    const meshMax = boundingInfo.boundingBox.maximumWorld;
+                    
+                    min = BABYLON.Vector3.Minimize(min, meshMin);
+                    max = BABYLON.Vector3.Maximize(max, meshMax);
+                }
+            }
+            
+            const center = BABYLON.Vector3.Center(min, max);
+            return { min, max, center };
+        }
+        
+        // Load the 3D model
+        BABYLON.SceneLoader.ImportMesh(
+            "", 
+            "./", 
+            "Tpose.glb", 
+            scene, 
+            function (meshes, particleSystems, skeletons, animationGroups) {
+                if (meshes.length > 0) {
+                    // Hide loading screen
+                    loadingScreen.style.display = "none";
+                    
+                    // Get the overall bounding box of all meshes
+                    const boundingInfo = calculateBoundingInfo(meshes);
+                    
+                    // Center and position the model
+                    const rootMesh = meshes[0];
+                    
+                    // Calculate model dimensions
+                    const modelHeight = boundingInfo.max.y - boundingInfo.min.y;
+                    const modelWidth = Math.max(
+                        boundingInfo.max.x - boundingInfo.min.x,
+                        boundingInfo.max.z - boundingInfo.min.z
+                    );
+                    
+                    // Position model so feet are on the "ground"
+                    rootMesh.position = new BABYLON.Vector3(0, -boundingInfo.min.y, 0);
+                    
+                    // Adjust camera target to center of model
+                    camera.target = new BABYLON.Vector3(0, boundingInfo.center.y - boundingInfo.min.y, 0);
+                    
+                    // Set appropriate camera distance based on model height
+                    camera.radius = modelHeight * 2;
+                    
+                    // Set default camera position for best view
+                    camera.alpha = Math.PI / 2; // 90 degrees (side view)
+                    camera.beta = Math.PI / 2.5; // Slightly above eye level
+                    
+                    console.log("Model loaded and positioned");
+                    console.log("Model height:", modelHeight);
+                    console.log("Camera target:", camera.target);
+                    console.log("Camera radius:", camera.radius);
+                }
+                
+                // Play animations if available
+                if (animationGroups && animationGroups.length > 0) {
+                    console.log("Playing animations:", animationGroups.length);
+                    for (let i = 0; i < animationGroups.length; i++) {
+                        animationGroups[i].play(true);
+                    }
+                } else {
+                    console.log("No animation groups found");
+                }
+                
+                console.log("Meshes loaded:", meshes.length);
+                console.log("Skeletons:", skeletons ? skeletons.length : 0);
+            },
+            function (evt) {
+                // Progress callback
+                if (evt.lengthComputable) {
+                    loadedPercent = (evt.loaded * 100 / evt.total).toFixed();
+                    loadingBarFill.style.width = loadedPercent + "%";
+                }
+            },
+            function (error) {
+                console.error("Error loading model:", error);
+            }
+        );
+        
+        // Handle window resize
+        window.addEventListener("resize", function() {
+            engine.resize();
+        });
+        
+        // Run the render loop
+        engine.runRenderLoop(() => scene.render());
+    </script>
+</body>
+</html>

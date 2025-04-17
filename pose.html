@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoga Pose Trainer</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+    :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --secondary: #ec4899;
+        --background: #f8fafc;
+        --card-bg: #ffffff;
+        --text: #1e293b;
+        --text-light: #64748b;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --error: #ef4444;
+        --border-radius: 16px;
+        --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: var(--background);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 1rem;
+    }
+
+    h1 {
+        margin-bottom: 2rem;
+        font-weight: 600;
+        position: relative;
+        padding-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    h1::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        border-radius: 2px;
+    }
+
+    .container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        width: 100%;
+        max-width: 1200px;
+        position: relative;
+    }
+
+    .camera, .ar-video, .animation-player{
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform-origin: center;
+    }
+
+    .camera, .ar-video, .animation-player {
+        aspect-ratio: 3/4;
+    }
+
+    .chatbot {
+        background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+
+    
+}
+
+
+    .controls {
+        margin-top: 2rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background: var(--primary);
+        color: white;
+        border-radius: 50px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2), 0 2px 4px -1px rgba(99, 102, 241, 0.1);
+    }
+
+    button:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+
+    button:active {
+        transform: translateY(0);
+    }
+
+    button:disabled {
+        background: var(--text-light);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .hint {
+        color: var(--text-light);
+        font-size: 0.875rem;
+        font-style: italic;
+    }
+
+    .fullscreen-camera, .fullscreen-ar, .fullscreen-animation {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 100;
+        border-radius: 0;
+        animation: expand 0.4s ease-out;
+    }
+
+    .small {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 160px !important;
+        height: 230px !important;
+        z-index: 200;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        border-radius: 12px;
+        animation: shrink 0.4s ease-out;
+    }
+
+    @keyframes expand {
+        from { transform: scale(0.8); opacity: 0.8; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes shrink {
+        from { transform: scale(1.2); opacity: 0.8; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .toggle-button {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        z-index: 300;
+        background: rgba(255, 255, 255, 0.7);
+        color: var(--primary);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        backdrop-filter: blur(5px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 0;
+    }
+
+    .toggle-button:hover {
+        background: white;
+    }
+
+    .hidden {
+        display: none;
+        animation: fadeOut 0.3s ease;
+    }
+
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+
+    video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: var(--border-radius);
+    }
+
+    .feedback {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        font-size: 1rem;
+        z-index: 400;
+        backdrop-filter: blur(5px);
+        animation: slideUp 0.5s ease;
+        max-width: 90%;
+        text-align: center;
+    }
+
+    @keyframes slideUp {
+        from { transform: translate(-50%, 20px); opacity: 0; }
+        to { transform: translate(-50%, 0); opacity: 1; }
+    }
+
+    .success-feedback {
+        background: rgba(16, 185, 129, 0.8);
+    }
+
+    .warning-feedback {
+        background: rgba(245, 158, 11, 0.8);
+    }
+
+    .pose-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: var(--border-radius);
+    }
+
+    .success-popup, .retry-popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        color: white;
+        font-size: 1.5rem;
+        z-index: 500;
+        box-shadow: var(--shadow);
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        text-align: center;
+        max-width: 90%;
+    }
+
+    .success-popup {
+        background: linear-gradient(135deg, var(--success), #06b6d4);
+    }
+
+    .retry-popup {
+        background: linear-gradient(135deg, var(--warning), #fb7185);
+    }
+
+    @keyframes popIn {
+        from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+        to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+
+    /* Chat bubble styling */
+    .chat-message {
+        padding: 0.75rem 1rem;
+        border-radius: 1rem;
+        margin-bottom: 0.5rem;
+        max-width: 85%;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bot-message {
+        background: #f1f5f9;
+        align-self: flex-start;
+        border-bottom-left-radius: 0.25rem;
+    }
+
+    .user-message {
+        background: var(--primary);
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 0.25rem;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .container {
+            grid-template-columns: 1fr;
+        }
+
+        .camera, .ar-video, .animation-player {
+            aspect-ratio: 16/9;
+            min-height: 250px;
+        }
+    }
+
+    /* Loading indicator */
+    .loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--primary);
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* Progress indicator */
+    .progress-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    .progress-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        margin: 0 5px;
+    }
+
+    .progress-dot.active {
+        background: var(--primary);
+        transform: scale(1.2);
+    }
+
+    /* Add to the camera & AR video when no feed is available */
+    .placeholder-text {
+        color: var(--text-light);
+        font-size: 0.875rem;
+        text-align: center;
+        padding: 1rem;
+    }
+
+    /* Custom scrollbar for chatbot */
+    .chatbot::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chatbot::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+
+    .chatbot::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .chatbot::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* New CSS for toggle functionality */
+    .fullscreen-ar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 100;
+        border-radius: 0;
+        animation: expand 0.4s ease-out;
+    }
+
+    .animation-player.fullscreen-ar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 100;
+        border-radius: 0;
+        animation: expand 0.4s ease-out;
+    }
+
+    .animation-player.small {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 160px !important;
+        height: 230px !important;
+        z-index: 200;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        border-radius: 12px;
+        animation: shrink 0.4s ease-out;
+    }
+    #yoga-logo {
+    display: block;
+    text-align: center;
+    margin: 20px 0;
+    text-decoration: none;
+    color: var(--primary); /* Use your primary color variable */
+    font-size: 2rem;
+    font-weight: bold;
+    letter-spacing: 5px;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+#yoga-logo:hover {
+    color: var(--secondary); /* Use your secondary color variable for hover effect */
+    transform: scale(1.1);
+}
+
+#yoga-logo span {
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+</style>
+
+</head>
+<body>
+    <a href="index.html" id="yoga-logo">
+        <span>YOGA</span>
+    </a>
+    
+    <h1 id="pose-name">Pose Name: Detecting...</h1>
+    <h2 id="detected-pose">Detected Pose: Unknown</h2>
+    <div class="container" id="main-container">
+        <div class="camera" id="camera">
+            <button class="toggle-button" id="toggle-camera-btn" onclick="toggleScreen('camera')">
+                <i class="fas fa-expand-alt"></i>
+            </button>
+            <div class="placeholder-text">Camera Feed</div>
+        </div>
+        <div class="ar-video" id="ar-video">
+            <button class="toggle-button" id="toggle-ar-btn" onclick="toggleScreen('ar')">
+                <i class="fas fa-expand-alt"></i>
+            </button>
+            <div class="placeholder-text">AR Video</div>
+        </div>
+        <div class="animation-player" id="animation-player">
+            <button class="toggle-button" id="toggle-animation-btn" onclick="toggleScreen('animation')">
+                <i class="fas fa-expand-alt"></i>
+            </button>
+            <iframe id="animation-iframe" src="" width="100%" height="100%" style="border: none;"></iframe>
+        </div>
+        <div class="chatbot" id="chatbot">
+            <div class="chat-message bot-message" id="greeting">Hi User, I'm here to assist in your yoga pose practice.</div>
+            <div class="progress-container" id="progress-container"></div>
+            <button id="start-btn" onclick="startInstruction()">
+                <i class="fas fa-play"></i> Start Instruction
+            </button>
+            <button id="stop-btn" onclick="stopInstruction()" disabled>
+                <i class="fas fa-pause"></i> Stop
+            </button>
+            <button id="continue-btn" onclick="continueInstruction()" disabled>
+                <i class="fas fa-forward"></i> Continue
+            </button>
+            <p class="hint" id="mic-hint"></p>
+            <p class="hint" id="camera-hint"></p>
+        </div>
+    </div>
+    <div class="controls">
+        <button id="prev-pose" onclick="navigatePose(-1)">
+            <i class="fas fa-chevron-left"></i> Previous Pose
+        </button>
+        <button id="next-pose" onclick="navigatePose(1)">
+            Next Pose <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <script>
+    const poses = {
+        "Tree Pose": ["Step 1: Stand straight with feet together.", "Step 2: Bend your right knee and place the right foot high up on your left thigh.", "Step 3: Balance and raise your hands above your head, joining them in a namaste."],
+        "T Pose":["Step 1: Stand straight with your feet shoulder-width apart.","Step 2: Extend both arms out to the sides at shoulder height, forming a 'T' shape.","Step 3: Keep your palms facing downward and maintain a straight posture with a neutral gaze forward."],
+        "Warrior Pose": ["Step 1: Stand with feet wide apart.", "Step 2: Turn your right foot out 90 degrees and left foot in slightly.", "Step 3: Bend your right knee and extend your arms out to the sides."],
+        "Downward Dog": ["Step 1: Start on your hands and knees.", "Step 2: Lift your hips up towards the ceiling.", "Step 3: Straighten your arms and legs, pressing your heels towards the floor."],
+        "Lotus Pose": ["Step 1: Sit on the floor with your legs extended.", "Step 2: Bend your right knee and place your right foot on your left thigh.", "Step 3: Bend your left knee and place your left foot on your right thigh."],
+        "Cobra Pose": ["Step 1: Lie on your stomach with hands under your shoulders.", "Step 2: Lift your chest off the floor, keeping your shoulders down and back."],
+        "Bridge Pose": ["Step 1: Lie on your back with knees bent and feet flat on the floor.", "Step 2: Lift your hips towards the ceiling.", "Step 3: Clasp your hands under your back and press your arms down."],
+        "Eagle Pose": ["Step 1: Stand straight with feet together.", "Step 2: Bend your knees slightly and lift your left foot to cross it over your right knee.", "Step 3: Wrap your right arm under your left arm and bend your elbows."],
+        "Bow Pose": ["Step 1: Lie on your stomach with hands by your sides.", "Step 2: Bend your knees and reach your hands back to grab your ankles.", "Step 3: Lift your chest and thighs off the floor."],
+        "Half Moon": ["Step 1: Stand with feet together.", "Step 2: Lift your left leg and extend it behind you.", "Step 3: Twist your torso to the right and extend your right arm upwards."],
+        "Triangle Pose": ["Step 1: Stand with feet wide apart.", "Step 2: Turn your right foot out 90 degrees and left foot in slightly.", "Step 3: Extend your arms out to the sides and bend to the right, placing your right hand on your shin."],
+        "Plank Pose": ["Step 1: Lie face down with hands under your shoulders.", "Step 2: Push up onto your toes, keeping your body in a straight line."]
+    };
+
+    let currentPoseIndex = 0;
+    let currentStepIndex = 0;
+    let instructionInterval;
+    let isInstructionActive = false;
+    let videoStream;
+    let speaking = false;
+    let instructionsCompleted = false;
+    let poseDetectionInterval;
+    let lastDetectedPose = "Unknown Pose";
+    let poseDetectionActive = false;
+    let attemptsCounter = 0;
+
+    // MediaPipe pose detection server endpoint
+    const POSE_DETECTION_API = 'http://localhost:5000/detect_pose';
+
+    function getPoseIndexFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return parseInt(urlParams.get('poseIndex')) || 0;
+    }
+
+    function updateProgressDots() {
+        const poseName = Object.keys(poses)[currentPoseIndex];
+        const steps = poses[poseName];
+        const progressContainer = document.getElementById("progress-container");
+        progressContainer.innerHTML = '';
+
+        for (let i = 0; i < steps.length; i++) {
+            const dot = document.createElement('div');
+            dot.className = `progress-dot ${i < currentStepIndex ? 'active' : ''}`;
+            progressContainer.appendChild(dot);
+        }
+    }
+
+    function updatePose() {
+        const poseName = Object.keys(poses)[currentPoseIndex];
+        document.getElementById("pose-name").textContent = `Pose Name: ${poseName}`;
+        document.getElementById("prev-pose").disabled = currentPoseIndex === 0;
+        document.getElementById("next-pose").disabled = currentPoseIndex === Object.keys(poses).length - 1;
+
+        // Update greeting message with animation
+        const greetingElement = document.getElementById("greeting");
+        greetingElement.style.opacity = "0";
+
+        setTimeout(() => {
+            greetingElement.textContent = `Welcome! Let's master the ${poseName} together. I'm here to guide you through each step.`;
+            greetingElement.style.opacity = "1";
+
+            // Speak the welcome message
+            if (!window.speechSynthesis.speaking) {
+                speak(`Welcome! Let's master the ${poseName} together. I'm here to guide you through each step.`);
+            }
+        }, 300);
+
+        currentStepIndex = 0;
+        instructionsCompleted = false;
+        attemptsCounter = 0;
+        updateProgressDots();
+    }
+
+    function navigatePose(direction) {
+    // Add animation to pose transition
+    document.getElementById("main-container").style.opacity = "0.5";
+    document.getElementById("main-container").style.transform = "scale(0.98)";
+
+    // Stop any ongoing speech
+    window.speechSynthesis.cancel();
+    speaking = false;
+
+    // Stop ongoing instruction
+    stopInstruction();
+
+    // Stop pose detection feedback if active
+    if (poseDetectionInterval) {
+        clearInterval(poseDetectionInterval);
+        poseDetectionInterval = null;
+    }
+
+    // Remove any feedback elements
+    const feedbackElements = document.querySelectorAll('.feedback, .success-popup, .retry-popup');
+    feedbackElements.forEach(element => element.remove());
+
+    if (direction === -1 && currentPoseIndex > 0) {
+        currentPoseIndex--;
+    } else if (direction === 1 && currentPoseIndex < Object.keys(poses).length - 1) {
+        currentPoseIndex++;
+    }
+
+    // IMPORTANT: Completely reset the UI to its initial state
+    resetLayout();
+
+    // Load the appropriate 3D animation HTML file based on the current pose
+    loadAnimationHTML();
+
+    // Restore the container with animation
+    setTimeout(() => {
+        document.getElementById("main-container").style.opacity = "1";
+        document.getElementById("main-container").style.transform = "scale(1)";
+        updatePose();
+        clearInstructions();
+    }, 300);
+}
+
+
+    function resetLayout() {
+        // First, get references to all elements
+        const camera = document.getElementById("camera");
+        const arVideo = document.getElementById("ar-video");
+        const animationPlayer = document.getElementById("animation-player");
+        const chatbot = document.getElementById("chatbot");
+        const container = document.getElementById("main-container");
+
+        // Remove any classes that might have been added
+        camera.className = "camera";
+        arVideo.className = "ar-video";
+        animationPlayer.className = "animation-player";
+        chatbot.className = "chatbot";
+
+        // Reset inline styles that might have been set
+        camera.style = "";
+        arVideo.style = "";
+        animationPlayer.style = "";
+        chatbot.style = "";
+
+        // Ensure the chatbot is visible
+        chatbot.classList.remove("hidden");
+
+        // Reset the toggle button texts
+        document.getElementById("toggle-camera-btn").innerHTML = '<i class="fas fa-expand-alt"></i>';
+        document.getElementById("toggle-ar-btn").innerHTML = '<i class="fas fa-expand-alt"></i>';
+        document.getElementById("toggle-animation-btn").innerHTML = '<i class="fas fa-expand-alt"></i>';
+
+        // Reset the container layout if needed
+        container.style = "";
+
+        // Remove any overlay images
+        const overlays = document.querySelectorAll('.pose-overlay');
+        overlays.forEach(overlay => overlay.remove());
+
+        // Remove any popups
+        const popups = document.querySelectorAll('.success-popup, .retry-popup');
+        popups.forEach(popup => popup.remove());
+
+        instructionsCompleted = false;
+        attemptsCounter = 0;
+        updateProgressDots();
+    }
+
+    function clearInstructions() {
+        const chatbotElement = document.getElementById("chatbot");
+        chatbotElement.innerHTML = `
+            <div class="chat-message bot-message" id="greeting">Welcome! Let's master the ${Object.keys(poses)[currentPoseIndex]} together. I'm here to guide you through each step.</div>
+            <div class="progress-container" id="progress-container"></div>
+            <button id="start-btn" onclick="startInstruction()">
+                <i class="fas fa-play"></i> Start Instruction
+            </button>
+            <button id="stop-btn" onclick="stopInstruction()" disabled>
+                <i class="fas fa-pause"></i> Stop
+            </button>
+            <button id="continue-btn" onclick="continueInstruction()" disabled>
+                <i class="fas fa-forward"></i> Continue
+            </button>
+            <p class="hint" id="mic-hint"></p>
+            <p class="hint" id="camera-hint"></p>
+        `;
+
+        document.getElementById("stop-btn").disabled = true;
+        document.getElementById("continue-btn").disabled = true;
+        updateProgressDots();
+    }
+
+    function speak(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        speaking = true;
+
+        utterance.onend = function() {
+            speaking = false;
+        };
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function startInstruction() {
+        if (!isInstructionActive) {
+            isInstructionActive = true;
+            document.getElementById("stop-btn").disabled = false;
+            document.getElementById("continue-btn").disabled = true;
+            currentStepIndex = 0;
+            updateProgressDots();
+            instructionLoop();
+            startCameraAndDetectPose();
+
+            // Add animation to start button
+            const startButton = document.getElementById("start-btn");
+            startButton.style.transform = "scale(0.95)";
+            setTimeout(() => {
+                startButton.style.transform = "";
+            }, 200);
+        }
+    }
+
+    function stopInstruction() {
+        if (isInstructionActive) {
+            isInstructionActive = false;
+            clearInterval(instructionInterval);
+
+            // Stop speech recognition
+            if (typeof recognition !== 'undefined' && recognition) {
+                try {
+                    recognition.stop();
+                } catch (e) {
+                    console.log("Error stopping recognition: ", e);
+                }
+            }
+
+            document.getElementById("stop-btn").disabled = true;
+            document.getElementById("continue-btn").disabled = false;
+            document.getElementById("mic-hint").textContent = "Microphone off.";
+
+            // Add animation to stop button
+            const stopButton = document.getElementById("stop-btn");
+            stopButton.style.transform = "scale(0.95)";
+            setTimeout(() => {
+                stopButton.style.transform = "";
+            }, 200);
+        }
+    }
+
+    function continueInstruction() {
+        if (!isInstructionActive) {
+            isInstructionActive = true;
+            document.getElementById("stop-btn").disabled = false;
+            document.getElementById("continue-btn").disabled = true;
+            instructionLoop();
+
+            // Add animation to continue button
+            const continueButton = document.getElementById("continue-btn");
+            continueButton.style.transform = "scale(0.95)";
+            setTimeout(() => {
+                continueButton.style.transform = "";
+            }, 200);
+        }
+    }
+
+    function instructionLoop() {
+        const poseName = Object.keys(poses)[currentPoseIndex];
+        const steps = poses[poseName];
+        if (currentStepIndex < steps.length) {
+            const stepText = steps[currentStepIndex];
+
+            // Add message with animation
+            const botMessage = document.createElement('div');
+            botMessage.className = 'chat-message bot-message';
+            botMessage.textContent = stepText;
+            botMessage.style.opacity = "0";
+            document.getElementById("chatbot").appendChild(botMessage);
+
+            // Animate the message in
+            setTimeout(() => {
+                botMessage.style.opacity = "1";
+            }, 50);
+
+            speak(stepText);
+            currentStepIndex++;
+            updateProgressDots();
+
+            document.getElementById("mic-hint").textContent = "Microphone on. Please respond.";
+            document.getElementById("mic-hint").style.color = "#10b981";
+
+            // Initialize recognition if needed
+            if (typeof recognition === 'undefined') {
+                initSpeechRecognition();
+            }
+
+            try {
+                recognition.start();
+            } catch (e) {
+                console.log("Error starting recognition: ", e);
+                // Create a new recognition instance if there was an error
+                initSpeechRecognition();
+                try {
+                    recognition.start();
+                } catch (e2) {
+                    console.log("Still couldn't start recognition: ", e2);
+                }
+            }
+
+            const chatbot = document.getElementById("chatbot");
+            chatbot.scrollTop = chatbot.scrollHeight;
+
+            instructionInterval = setTimeout(() => {
+                chatbotResponse("no response");
+            }, 70000);
+        } else {
+            instructionsCompleted = true;
+
+            // Add completion message with animation
+            const completionMessage = document.createElement('div');
+            completionMessage.className = 'chat-message bot-message';
+            completionMessage.textContent = "Instructions complete!";
+            completionMessage.style.opacity = "0";
+            document.getElementById("chatbot").appendChild(completionMessage);
+
+            // Animate the message in
+            setTimeout(() => {
+                completionMessage.style.opacity = "1";
+            }, 50);
+
+            speak("Instructions complete!");
+
+            // Auto-scroll to bottom of chatbot
+            const chatbot = document.getElementById("chatbot");
+            chatbot.scrollTop = chatbot.scrollHeight;
+
+            // Stop the microphone after instructions complete
+            if (typeof recognition !== 'undefined' && recognition) {
+                try {
+                    recognition.stop();
+                } catch (e) {
+                    console.log("Error stopping recognition: ", e);
+                }
+            }
+
+            // Hide chatbot and expand camera when instructions complete
+            setTimeout(() => {
+                document.getElementById("chatbot").classList.add("hidden");
+                document.getElementById("camera").classList.add("hidden");
+                document.getElementById("animation-player").classList.add("small");
+                document.getElementById("ar-video").classList.add("fullscreen-camera");
+
+
+                // Start checking for pose detection results
+                startPoseDetectionFeedback();
+            }, 2000);
+        }
+    }
+
+    function createSuccessPopup() {
+        const popup = document.createElement('div');
+        popup.className = 'success-popup';
+        popup.innerHTML = '<i class="fas fa-trophy"></i> You have done well!';
+        document.body.appendChild(popup);
+
+        // Remove popup after 3 seconds
+        setTimeout(() => {
+            if (popup.parentNode) {
+                popup.style.opacity = "0";
+                popup.style.transform = "translate(-50%, -60%) scale(0.8)";
+
+                setTimeout(() => {
+                    popup.remove();
+                    resetLayout();
+                }, 300);
+            }
+        }, 5000);
+
+        return popup;
+    }
+
+    function createRetryPopup() {
+        const popup = document.createElement('div');
+        popup.className = 'retry-popup';
+        popup.innerHTML = '<i class="fas fa-redo"></i> Let\'s try again You can do it this time!';
+        document.body.appendChild(popup);
+
+        // Remove popup after 3 seconds
+        setTimeout(() => {
+            if (popup.parentNode) {
+                popup.style.opacity = "0";
+                popup.style.transform = "translate(-50%, -60%) scale(0.8)";
+
+                setTimeout(() => {
+                    popup.remove();
+                    resetLayout();
+                }, 300);
+            }
+        }, 5000);
+
+        return popup;
+    }
+
+    function startPoseDetectionFeedback() {
+        // Clear any existing interval
+        if (poseDetectionInterval) {
+            clearInterval(poseDetectionInterval);
+        }
+
+        // Check every 5 seconds if the pose is correct
+        poseDetectionInterval = setInterval(() => {
+            // Get the current pose name
+            const expectedPoseName = Object.keys(poses)[currentPoseIndex];
+            const detectedPoseName = lastDetectedPose;
+
+            // Check if the pose is correct - specifically checking for exact match or partial match
+            const correctPoses = {
+                "Tree Pose": ["Tree Pose"],
+                "Warrior Pose": ["Warrior Pose", "Warrior II Pose"],
+                "T Pose": ["T Pose"]
+            };
+
+            const expectedPoseBase = expectedPoseName.split(' ')[0];
+            const isCorrectPose = (
+                detectedPoseName === expectedPoseName ||
+                (correctPoses[expectedPoseName] && correctPoses[expectedPoseName].includes(detectedPoseName)) ||
+                (detectedPoseName.includes(expectedPoseBase) && expectedPoseName.includes(detectedPoseName.split(' ')[0]))
+            );
+
+            // Remove any existing feedback
+            const existingFeedback = document.querySelector('.feedback');
+            if (existingFeedback) {
+                existingFeedback.remove();
+            }
+
+            if (isCorrectPose) {
+                // Positive feedback for correct pose
+                const praises = [
+                    "Well done! You've mastered the pose perfectly!",
+                    "Well done! Your form is outstanding!",
+                    "Well done! You're a natural at this pose!",
+                    "Well done! Your alignment is spot-on!",
+                    "Well done! You've got this pose down perfectly!"
+                ];
+                const randomPraise = praises[Math.floor(Math.random() * praises.length)];
+
+                // Create feedback message
+                const feedback = document.createElement('div');
+                feedback.className = 'feedback';
+                feedback.textContent = randomPraise;
+                feedback.style.background = "rgba(0,128,0,0.7)";
+                document.body.appendChild(feedback);
+
+                // Speak the praise
+                speak(randomPraise);
+
+                // Stop checking after giving positive feedback
+                clearInterval(poseDetectionInterval);
+                poseDetectionInterval = null;
+
+                // Reset the layout and show success popup after a short delay
+                setTimeout(() => {
+                    feedback.remove();
+                    // Return to normal layout
+                    resetLayout();
+                    // Show success popup
+                    createSuccessPopup();
+                }, 5000);
+
+            } else {
+                // Increase attempt counter
+                attemptsCounter++;
+
+                // Create feedback for incorrect pose
+                const feedback = document.createElement('div');
+                feedback.className = 'feedback';
+                feedback.textContent = "You're almost there! Keep it up.";
+                feedback.style.background = "rgba(255,140,0,0.7)";
+                document.body.appendChild(feedback);
+
+                // After 3 attempts or immediately after clicking, show retry popup and reset layout
+                if (attemptsCounter >= 3) {
+                    clearInterval(poseDetectionInterval);
+                    poseDetectionInterval = null;
+
+                    setTimeout(() => {
+                        feedback.remove();
+                        // Return to normal layout
+                        resetLayout();
+                        // Show retry popup
+                        createRetryPopup();
+                    }, 5000);
+                }
+            }
+
+
+            // Remove feedback after 5 seconds if still visible
+            setTimeout(() => {
+                if (feedback && feedback.parentNode) {
+                    feedback.remove();
+                }
+            }, 5000);
+
+        }, 5000); // Check every 5 seconds
+    }
+
+    function initSpeechRecognition() {
+        try {
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.onresult = (event) => {
+                const userResponse = event.results[0][0].transcript.toLowerCase();
+                chatbotResponse(userResponse);
+            };
+
+            recognition.onerror = (event) => {
+                document.getElementById("mic-hint").textContent = `Error: ${event.error}`;
+            };
+
+            recognition.onend = () => {
+                if (isInstructionActive && !instructionsCompleted) {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.log("Error restarting recognition: ", e);
+                    }
+                }
+            };
+        } catch (e) {
+            console.log("Error initializing speech recognition: ", e);
+            document.getElementById("mic-hint").textContent = "Speech recognition not available";
+        }
+    }
+
+    function chatbotResponse(response) {
+        clearInterval(instructionInterval);
+
+        if (typeof recognition !== 'undefined' && recognition) {
+            try {
+                recognition.stop();
+            } catch (e) {
+                console.log("Error stopping recognition: ", e);
+            }
+        }
+
+        document.getElementById("chatbot").innerHTML += `<p>User: ${response}</p>`;
+
+        if (response.includes("yes") || response.includes("done") || response.includes("complete")|| response.includes("Got it ") || response.includes("Okay") || response.includes("Sure")) {
+            instructionLoop();
+        } else {
+            currentStepIndex--;
+            instructionLoop();
+        }
+    }
+
+    function toggleScreen(type) {
+        const camera = document.getElementById("camera");
+        const arVideo = document.getElementById("ar-video");
+        const animationPlayer = document.getElementById("animation-player");
+        const chatbot = document.getElementById("chatbot");
+
+        if (type === 'camera') {
+            if (camera.classList.contains("fullscreen-camera")) {
+                // Return to normal view
+                resetLayout();
+            } else {
+                // Go to fullscreen
+                camera.classList.add("fullscreen-camera");
+                arVideo.classList.add("small");
+                animationPlayer.classList.add("small");
+                chatbot.classList.add("hidden");
+            }
+        } else if (type === 'ar') {
+            if (arVideo.classList.contains("fullscreen-ar")) {
+                // Return to normal view
+                resetLayout();
+            } else {
+                // Go to fullscreen
+                arVideo.classList.add("fullscreen-ar");
+                camera.classList.add("small");
+                animationPlayer.classList.add("small");
+                chatbot.classList.add("hidden");
+            }
+        } else if (type === 'animation') {
+            if (animationPlayer.classList.contains("fullscreen-ar")) {
+                // Return to normal view
+                resetLayout();
+            } else {
+                // Go to fullscreen
+                animationPlayer.classList.add("fullscreen-ar");
+                camera.classList.add("small");
+                arVideo.classList.add("small");
+                chatbot.classList.add("hidden");
+            }
+        }
+    }
+
+    async function startCameraAndDetectPose() {
+        const camera = document.getElementById("camera");
+        const arVideo = document.getElementById("ar-video");
+
+        try {
+            if (!videoStream) {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            }
+            const video = document.createElement("video");
+            video.srcObject = videoStream;
+            video.autoplay = true;
+            video.style.width = "100%";
+            video.style.height = "100%";
+            video.style.objectFit = "cover";
+
+            // Clear the camera div before adding the video
+            camera.innerHTML = "";
+            camera.appendChild(video);
+
+            // Clear the AR video div
+            arVideo.innerHTML = "";
+
+            // Re-add the toggle button which was removed when clearing camera div
+            const toggleBtn = document.createElement("button");
+            toggleBtn.className = "toggle-button";
+            toggleBtn.id = "toggle-camera-btn";
+            toggleBtn.onclick = function() { toggleScreen('camera'); };
+            toggleBtn.textContent = "⛶";
+            camera.appendChild(toggleBtn);
+
+            document.getElementById("camera-hint").textContent = "Camera on.";
+
+            // Add toggle button to AR video as well
+            const toggleArBtn = document.createElement("button");
+            toggleArBtn.className = "toggle-button";
+            toggleArBtn.id = "toggle-ar-btn";
+            toggleArBtn.onclick = function() { toggleScreen('ar'); };
+            toggleArBtn.textContent = "⛶";
+            arVideo.appendChild(toggleArBtn);
+
+            // Add toggle button to Animation Player as well
+            const toggleAnimationBtn = document.createElement("button");
+            toggleAnimationBtn.className = "toggle-button";
+            toggleAnimationBtn.id = "toggle-animation-btn";
+            toggleAnimationBtn.onclick = function() { toggleScreen('animation'); };
+            toggleAnimationBtn.textContent = "⛶";
+            document.getElementById("animation-player").appendChild(toggleAnimationBtn);
+
+            // Set up pose detection interval
+            if (!poseDetectionActive) {
+                poseDetectionActive = true;
+
+                // Create a capture loop for pose detection
+                setInterval(async () => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        // Convert canvas to blob for sending to server
+                        canvas.toBlob(async (blob) => {
+                            if (!blob) return;
+
+                            const formData = new FormData();
+                            formData.append('file', blob, 'frame.jpg');
+
+                            try {
+                                const response = await fetch(POSE_DETECTION_API, {
+                                    method: 'POST',
+                                    body: formData
+                                });
+
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! Status: ${response.status}`);
+                                }
+
+                                const result = await response.json();
+
+                                // Update pose name
+                                if (result && result.pose) {
+                                    lastDetectedPose = result.pose;
+                                    document.getElementById('detected-pose').textContent = `Detected Pose: ${result.pose}`;
+
+                                    // Display the processed image in the AR video div
+                                    if (result.image) {
+                                        const img = document.createElement('img');
+                                        img.src = result.image;
+                                        img.className = 'pose-overlay';
+
+                                        // Clear previous content and add the new image
+                                        arVideo.innerHTML = '';
+                                        arVideo.appendChild(img);
+
+                                        // Re-add the toggle button
+                                        arVideo.appendChild(toggleArBtn);
+                                    }
+                                }
+                            } catch (error) {
+                                console.error("Error with pose detection:", error);
+                                // If server connection fails, set status
+                                document.getElementById('detected-pose').textContent = "Detected Pose: Server connection failed";
+                            }
+                        }, 'image/jpeg', 0.8);
+                    } catch (error) {
+                        console.error("Error capturing video frame:", error);
+                    }
+                }, 1000); // Send frame every second
+            }
+        } catch (err) {
+            console.error("Error accessing camera:", err);
+            document.getElementById("camera-hint").textContent = "Camera error: " + err.message;
+        }
+    }
+
+    // Request permissions only once
+    async function requestPermissions() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            stream.getTracks().forEach(track => track.stop());
+        } catch (err) {
+            console.error("Error accessing media devices.", err);
+        }
+    }
+
+    // Initialize
+    currentPoseIndex = getPoseIndexFromURL();
+    updatePose();
+    requestPermissions();
+
+    // Add event listeners
+    window.addEventListener('DOMContentLoaded', function() {
+        // Ensure normal layout on page load
+        resetLayout();
+    });
+
+    // Add event listener to update pose name on click
+    document.querySelectorAll('.pose-container').forEach(container => {
+        container.addEventListener('click', function() {
+            const poseName = this.getAttribute('data-pose-name');
+            document.getElementById('pose-name').textContent = `Pose Name: ${poseName}`;
+        });
+    });
+
+    // Load the appropriate 3D animation HTML file based on the current pose
+    function loadAnimationHTML() {
+        const poseName = Object.keys(poses)[currentPoseIndex];
+        const animationIframe = document.getElementById("animation-iframe");
+        animationIframe.src = `${poseName.replace(/ /g, '')}.html`; // Assuming the HTML files are named after the poses without spaces
+    }
+
+    // Call the function to load the initial 3D animation HTML file
+    loadAnimationHTML();
+    </script>
+</body>
+</html>

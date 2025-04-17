@@ -1,0 +1,658 @@
+i2
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoga & Exercise UI</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --accent-color: #3a0ca3;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            padding: 0;
+            overflow-x: hidden;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f6f8ff 0%, #eef1f8 100%);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            padding: 10px;
+            color: white;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+            box-shadow: var(--shadow);
+            margin-bottom: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 50px;
+            padding: 5px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            margin: 20px auto;
+            max-width: 600px;
+            overflow: hidden;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 10px 30px rgba(67, 97, 238, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            font-size: 16px;
+            background: transparent;
+            outline: none;
+            color: var(--dark-color);
+        }
+
+        .search-bar button {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 18px;
+        }
+
+        .search-bar button:hover {
+            transform: rotate(10deg) scale(1.1);
+        }
+
+        .section {
+            margin: 40px 0;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+
+        .section-header h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .section-header h2::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 5px;
+            height: 25px;
+            background: linear-gradient(to bottom, var(--primary-color), var(--accent-color));
+            border-radius: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+            padding: 10px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+            transform: translateY(0);
+            position: relative;
+            cursor: pointer;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(67, 97, 238, 0.2);
+        }
+
+        .card-img-container {
+            overflow: hidden;
+            height: 180px;
+            position: relative;
+        }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .card:hover img {
+            transform: scale(1.1);
+        }
+
+        .card-content {
+            padding: 20px;
+            text-align: center;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card p {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+            color: var(--dark-color);
+        }
+
+        .difficulty {
+            display: inline-block;
+            padding: 5px 12px;
+            background: rgba(76, 201, 240, 0.1);
+            color: var(--success-color);
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+
+        .pagination button {
+            background: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            color: var(--dark-color);
+            font-weight: bold;
+        }
+
+        .pagination button:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .pagination span {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark-color);
+            background: white;
+            border-radius: 10px;
+            padding: 8px 16px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(67, 97, 238, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(67, 97, 238, 0);
+            }
+        }
+
+        /* Card hover animation */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.3) 0%, rgba(58, 12, 163, 0.3) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 20px;
+            pointer-events: none;
+        }
+
+        .card:hover::after {
+            opacity: 1;
+        }
+
+        /* Add pulse animation to cards on page load */
+        .card {
+            animation: cardAppear 0.5s calc(var(--index) * 0.1s) cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Mode Toggle */
+        .mode-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            z-index: 100;
+            font-size: 24px;
+            transition: var(--transition);
+            animation: pulse 2s infinite;
+        }
+
+        .mode-toggle:hover {
+            transform: rotate(45deg);
+        }
+
+        /* Loading animation */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 15px;
+            }
+
+            .card-img-container {
+                height: 140px;
+            }
+
+            .section-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .card-content {
+                padding: 15px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loader" id="loader">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <header>
+        <h1>Yoga & Exercise</h1>
+        <div class="search-bar">
+            <input type="text" id="search" placeholder="Search poses and exercises...">
+            <button onclick="search()">🔍</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="section" id="yoga-section">
+            <div class="section-header">
+                <h2>Yoga Poses</h2>
+            </div>
+            <div class="grid" id="yoga-grid"></div>
+            <div class="pagination">
+                <button onclick="changeYogaPage(-1)">←</button>
+                <span id="yoga-page-number">1</span>
+                <button onclick="changeYogaPage(1)">→</button>
+            </div>
+        </div>
+
+        <div class="section" id="exercise-section">
+            <div class="section-header">
+                <h2>Exercises</h2>
+            </div>
+            <div class="grid" id="exercise-grid"></div>
+            <div class="pagination">
+                <button onclick="changeExercisePage(-1)">←</button>
+                <span id="exercise-page-number">1</span>
+                <button onclick="changeExercisePage(1)">→</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mode-toggle" id="mode-toggle">🌙</div>
+
+    <script>
+        const yogaPoses = [
+            {name: "Tree Pose", difficulty: "Beginner"},
+            {name: "T Pose", difficulty: "Intermediate"},
+            {name: "Warrior Pose", difficulty: "Beginner"}, 
+            {name: "Downward Dog", difficulty: "Beginner"},
+            {name: "Lotus Pose", difficulty: "Advanced"},
+            {name: "Cobra Pose", difficulty: "Beginner"},
+            {name: "Bridge Pose", difficulty: "Intermediate"}, 
+            {name: "Eagle Pose", difficulty: "Intermediate"},
+            {name: "Bow Pose", difficulty: "Intermediate"}, 
+            {name: "Half Moon", difficulty: "Advanced"},
+            {name: "Triangle Pose", difficulty: "Beginner"}, 
+            {name: "Plank Pose", difficulty: "Beginner"}
+        ];
+        
+        const exercises = [
+            {name: "Squats", difficulty: "Beginner"},
+            {name: "Pulls", difficulty: "Intermediate"},
+            {name: "Push", difficulty: "Beginner"}, 
+            {name: "Lunges", difficulty: "Beginner"},
+            {name: "Crunches", difficulty: "Beginner"},
+            {name: "Plank", difficulty: "Beginner"},
+            {name: "Deadlifts", difficulty: "Advanced"}, 
+            {name: "Jumping Jacks", difficulty: "Beginner"},
+            {name: "Burpees", difficulty: "Intermediate"}, 
+            {name: "Mountain Climbers", difficulty: "Intermediate"},
+            {name: "Side Plank", difficulty: "Intermediate"}, 
+            {name: "Bicycle Crunches", difficulty: "Beginner"}
+        ];
+        
+        let yogaPage = 1;
+        let exercisePage = 1;
+        let darkMode = false;
+
+        function renderYogaItems() {
+            document.getElementById("yoga-grid").innerHTML = renderSection(yogaPoses, yogaPage);
+            document.getElementById("yoga-page-number").innerText = yogaPage;
+            animateCards();
+        }
+
+        function renderExerciseItems() {
+            document.getElementById("exercise-grid").innerHTML = renderSection(exercises, exercisePage);
+            document.getElementById("exercise-page-number").innerText = exercisePage;
+            animateCards();
+        }
+
+        function renderSection(items, page) {
+            let start = (page - 1) * 6;
+            let end = start + 6;
+            return items.slice(start, end)
+                .map((item, index) => {
+                    let difficultyClass = '';
+                    if (item.difficulty === 'Beginner') difficultyClass = 'success-color';
+                    else if (item.difficulty === 'Intermediate') difficultyClass = 'warning-color';
+                    else difficultyClass = 'accent-color';
+                    
+                    return `<div class='card' style="--index: ${index}" onclick="redirectToPose(${start + index})">
+                        <div class="card-img-container">
+                            <img src="images/${item.name.replace(/\s+/g, '-').toLowerCase()}.jpg" alt="${item.name}">
+                        </div>
+                        <div class="card-content">
+                            <p>${item.name}</p>
+                            <span class="difficulty ${difficultyClass}">${item.difficulty}</span>
+                        </div>
+                      </div>`;
+                })
+                .join('');
+        }
+
+        function redirectToPose(index) {
+            // Animation when redirecting
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+                card.style.transform = 'scale(0.8) translateY(30px)';
+                card.style.opacity = '0';
+            });
+            
+            setTimeout(() => {
+                window.location.href = `pose.html?poseIndex=${index}`;
+            }, 300);
+        }
+
+        function changeYogaPage(direction) {
+            let maxPages = Math.ceil(yogaPoses.length / 6);
+            if ((yogaPage + direction) > 0 && (yogaPage + direction) <= maxPages) {
+                yogaPage += direction;
+                
+                // Add page transition animation
+                const grid = document.getElementById("yoga-grid");
+                grid.style.opacity = "0";
+                grid.style.transform = "translateY(20px)";
+                
+                setTimeout(() => {
+                    renderYogaItems();
+                    grid.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+                    grid.style.opacity = "1";
+                    grid.style.transform = "translateY(0)";
+                }, 300);
+            }
+        }
+
+        function changeExercisePage(direction) {
+            let maxPages = Math.ceil(exercises.length / 6);
+            if ((exercisePage + direction) > 0 && (exercisePage + direction) <= maxPages) {
+                exercisePage += direction;
+                
+                // Add page transition animation
+                const grid = document.getElementById("exercise-grid");
+                grid.style.opacity = "0";
+                grid.style.transform = "translateY(20px)";
+                
+                setTimeout(() => {
+                    renderExerciseItems();
+                    grid.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+                    grid.style.opacity = "1";
+                    grid.style.transform = "translateY(0)";
+                }, 300);
+            }
+        }
+
+        function search() {
+            let query = document.getElementById("search").value.toLowerCase();
+            
+            // Add search animation
+            const yogaGrid = document.getElementById("yoga-grid");
+            const exerciseGrid = document.getElementById("exercise-grid");
+            
+            yogaGrid.style.opacity = "0";
+            exerciseGrid.style.opacity = "0";
+            
+            setTimeout(() => {
+                let filteredYoga = yogaPoses.filter(item => item.name.toLowerCase().includes(query));
+                let filteredExercises = exercises.filter(item => item.name.toLowerCase().includes(query));
+
+                document.getElementById("yoga-grid").innerHTML = renderSection(filteredYoga, 1);
+                document.getElementById("exercise-grid").innerHTML = renderSection(filteredExercises, 1);
+
+                // Reset pagination when searching
+                document.getElementById("yoga-page-number").innerText = "1";
+                document.getElementById("exercise-page-number").innerText = "1";
+                
+                yogaGrid.style.transition = "opacity 0.5s ease";
+                exerciseGrid.style.transition = "opacity 0.5s ease";
+                yogaGrid.style.opacity = "1";
+                exerciseGrid.style.opacity = "1";
+                
+                animateCards();
+            }, 300);
+        }
+
+        function animateCards() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        }
+
+        function toggleDarkMode() {
+            darkMode = !darkMode;
+            const root = document.documentElement;
+            const modeToggle = document.getElementById('mode-toggle');
+            
+            if (darkMode) {
+                document.body.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
+                document.body.style.color = '#f8f9fa';
+                root.style.setProperty('--light-color', '#16213e');
+                root.style.setProperty('--dark-color', '#f8f9fa');
+                modeToggle.innerHTML = '☀️';
+                
+                // Change card styles for dark mode
+                document.querySelectorAll('.card').forEach(card => {
+                    card.style.background = '#242a38';
+                });
+                
+                document.querySelectorAll('.pagination span, .pagination button').forEach(item => {
+                    item.style.background = '#242a38';
+                    item.style.color = '#f8f9fa';
+                });
+            } else {
+                document.body.style.background = 'linear-gradient(135deg, #f6f8ff 0%, #eef1f8 100%)';
+                document.body.style.color = '#212529';
+                root.style.setProperty('--light-color', '#f8f9fa');
+                root.style.setProperty('--dark-color', '#212529');
+                modeToggle.innerHTML = '🌙';
+                
+                // Revert card styles
+                document.querySelectorAll('.card').forEach(card => {
+                    card.style.background = 'white';
+                });
+                
+                document.querySelectorAll('.pagination span, .pagination button').forEach(item => {
+                    item.style.background = 'white';
+                    item.style.color = '#212529';
+                });
+            }
+        }
+
+        // Add event listeners
+        document.getElementById('mode-toggle').addEventListener('click', toggleDarkMode);
+        document.getElementById('search').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                search();
+            }
+        });
+
+        // Show loading animation
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+                // Stagger section animations
+                const sections = document.querySelectorAll('.section');
+                sections.forEach((section, index) => {
+                    section.style.animationDelay = `${index * 0.2}s`;
+                });
+            }, 1000);
+        });
+
+        // Initial rendering
+        renderYogaItems();
+        renderExerciseItems();
+    </script>
+</body>
+</html>
